@@ -1,9 +1,8 @@
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
-import logo from "../logo.svg";
 
-function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, checkUsage }) {
+function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, checkUsage, setAccent, accent }) {
   const { i18n } = useTranslation();
 
   const iconProps = {
@@ -14,11 +13,26 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
   return (
     <nav className="topNav" aria-label="main navigation">
       <div className="brand" aria-label="brand">
-        <img src={logo} alt="CurrencyApp" className="brandLogo" />
         <span className="brandTitle">CurrencyApp</span>
       </div>
       <div className="navActions">
         <>
+          <div className="accentSwatches" aria-label="accent colors">
+            {[
+              { key: 'purple', color: '#6c5ce7', label: 'Purple' },
+              { key: 'teal', color: '#0fae96', label: 'Teal' },
+              { key: 'amber', color: '#f59e0b', label: 'Amber' },
+            ].map(({ key, color, label }) => (
+              <motion.button
+                key={key}
+                aria-label={`Set accent ${label}`}
+                className="accentSwatch"
+                style={{ backgroundColor: color, outline: accent === key ? '2px solid #fff' : 'none' }}
+                onClick={() => setAccent && setAccent(key)}
+                {...iconProps}
+              />
+            ))}
+          </div>
           <motion.button
             className="themeToggle"
             aria-label="Toggle theme"

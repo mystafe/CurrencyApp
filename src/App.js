@@ -13,8 +13,10 @@ function App() {
     const saved = localStorage.getItem('ui.theme');
     return saved || (prefersDark ? "dark" : "light");
   });
+  const [accent, setAccent] = useState(() => localStorage.getItem('ui.accent') || 'purple');
   const [superMode, setSuperMode] = useState(false);
   const [, setTitleClicks] = useState(0);
+  const [toasts, setToasts] = useState([]);
 
   const toggleLanguage = () => {
     const newLng = i18n.language === 'tr' ? 'en' : 'tr';
@@ -30,6 +32,14 @@ function App() {
     });
   };
 
+  const showToast = (message, type = 'info', durationMs = 3000) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, durationMs);
+  };
+
   const handleTitleClick = () => {
     setTitleClicks((prev) => {
       const next = prev + 1;
@@ -43,7 +53,7 @@ function App() {
 
   const clearCache = () => {
     localStorage.clear();
-    alert('Cache cleared');
+    showToast('Cache cleared', 'success');
     window.location.reload();
   };
 
@@ -56,15 +66,34 @@ function App() {
       const data = await resp.json();
       const usage = data.usage || data.data?.usage;
       if (!usage) throw new Error('Malformed response');
-      alert(`Remaining requests: ${usage.requests_remaining}`);
+      showToast(`Remaining requests: ${usage.requests_remaining}`, 'info', 3500);
     } catch {
-      alert('Failed to fetch usage info');
+      showToast('Failed to fetch usage info', 'error');
     }
   };
 
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
+
+  useEffect(() => {
+    document.body.classList.remove('accent-purple', 'accent-teal', 'accent-amber');
+    document.body.classList.add(`accent-${accent}`);
+    try { localStorage.setItem('ui.accent', accent); } catch {}
+  }, [accent]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.scrollY > 4) {
+        document.body.classList.add('scrolled');
+      } else {
+        document.body.classList.remove('scrolled');
+      }
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const savedLang = localStorage.getItem('ui.lang');
@@ -82,8 +111,17 @@ function App() {
         superMode={superMode}
         clearCache={clearCache}
         checkUsage={checkUsage}
+        setAccent={setAccent}
+        accent={accent}
       />
-      <Currency isSuper={superMode} onTitleClick={handleTitleClick} />
+      <Currency isSuper={superMode} onTitleClick={handleTitleClick} notify={showToast} />
+      <div className="toastContainer" aria-live="polite" aria-atomic="true">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast ${t.type}`}>
+            {t.message}
+          </div>
+        ))}
+      </div>
       <Footer />
     </div>
   );
