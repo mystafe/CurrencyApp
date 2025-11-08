@@ -9,17 +9,25 @@ import { useTranslation } from 'react-i18next';
 function App() {
   const { i18n } = useTranslation();
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const [theme, setTheme] = useState(prefersDark ? "dark" : "light");
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('ui.theme');
+    return saved || (prefersDark ? "dark" : "light");
+  });
   const [superMode, setSuperMode] = useState(false);
   const [titleClicks, setTitleClicks] = useState(0);
 
   const toggleLanguage = () => {
     const newLng = i18n.language === 'tr' ? 'en' : 'tr';
     i18n.changeLanguage(newLng);
+    try { localStorage.setItem('ui.lang', newLng); } catch {}
   };
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      try { localStorage.setItem('ui.theme', next); } catch {}
+      return next;
+    });
   };
 
   const handleTitleClick = () => {
@@ -57,6 +65,13 @@ function App() {
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem('ui.lang');
+    if (savedLang && savedLang !== i18n.language) {
+      i18n.changeLanguage(savedLang);
+    }
+  }, [i18n]);
 
   return (
     <div className="container">

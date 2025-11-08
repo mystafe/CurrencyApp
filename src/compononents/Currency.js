@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { useTranslation } from 'react-i18next';
 import DatePicker from "react-datepicker";
@@ -239,7 +239,7 @@ function Currency({ isSuper, onTitleClick }) {
     .split(',')
     .map((c) => c.trim())
     .filter(Boolean);
-  const [currencies, setCurrencies] = useState(
+  const [currencies, setCurrencies] = useState(() =>
     defaultCodes.map((code, idx) => ({
       code,
       amount: idx === 0 ? 1 : 0,
@@ -254,6 +254,52 @@ function Currency({ isSuper, onTitleClick }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
   const [compareTime, setCompareTime] = useState(null);
   const [compareAmounts, setCompareAmounts] = useState([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingCompare, setIsUpdatingCompare] = useState(false);
+
+  // Restore state from URL or localStorage (persisted UX)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const codesParam = params.get('c');
+      const baseParam = params.get('b');
+      const dateParam = params.get('d');
+      const compareParam = params.get('cd');
+      const amountParam = params.get('a');
+      if (codesParam) {
+        const codes = codesParam.split(',').map((s) => s.trim()).filter(Boolean);
+        if (codes.length) {
+          setCurrencies(codes.map((code, idx) => ({
+            code,
+            amount: idx === 0 ? (amountParam ? parseFloat(amountParam) || 1 : 1) : 0,
+            rate: idx === 0 ? 1 : 0,
+          })));
+        }
+      } else {
+        const saved = localStorage.getItem('converter.state.v1');
+        if (saved) {
+          const st = JSON.parse(saved);
+          if (Array.isArray(st.currencies) && st.currencies.length) {
+            setCurrencies(st.currencies);
+          }
+          if (typeof st.baseIndex === 'number') setBaseIndex(st.baseIndex);
+          if (typeof st.currencyTime === 'string') setCurrencyTime(st.currencyTime);
+          if (st.compareTime) setCompareTime(st.compareTime);
+        }
+      }
+      if (baseParam) setBaseIndex(parseInt(baseParam, 10) || 0);
+      if (dateParam) setCurrencyTime(dateParam);
+      if (compareParam) setCompareTime(compareParam);
+    } catch {}
+  }, []);
+
+  // Persist state
+  useEffect(() => {
+    try {
+      const st = { currencies, baseIndex, currencyTime, compareTime };
+      localStorage.setItem('converter.state.v1', JSON.stringify(st));
+    } catch {}
+  }, [currencies, baseIndex, currencyTime, compareTime]);
 
   const formatTwoLines = (text) => {
     const parts = text.split(' ');
@@ -350,7 +396,9 @@ function Currency({ isSuper, onTitleClick }) {
 
   const codesList = currencies.map((c) => c.code).join();
   useEffect(() => {
-    const updateRates = async () => {
+    let alive = true;
+    const handle = setTimeout(async () => {
+      setIsUpdating(true);
       try {
         const base = currencies[baseIndex];
         const updated = await Promise.all(
@@ -361,12 +409,18 @@ function Currency({ isSuper, onTitleClick }) {
             return { ...c, rate, amount: (base.amount * rate).toFixed(2) };
           })
         );
+        if (!alive) return;
         setCurrencies(updated);
       } catch (err) {
         console.log(err.message);
+      } finally {
+        if (alive) setIsUpdating(false);
       }
+    }, 250);
+    return () => {
+      alive = false;
+      clearTimeout(handle);
     };
-    updateRates();
   }, [currencyTime, baseIndex, currencies[baseIndex].code, currencies[baseIndex].amount, codesList]);
 
   useEffect(() => {
@@ -374,7 +428,9 @@ function Currency({ isSuper, onTitleClick }) {
       setCompareAmounts([]);
       return;
     }
-    const updateCompare = async () => {
+    let alive = true;
+    const handle = setTimeout(async () => {
+      setIsUpdatingCompare(true);
       try {
         const base = currencies[baseIndex];
         const res = await Promise.all(
@@ -384,12 +440,17 @@ function Currency({ isSuper, onTitleClick }) {
             return (base.amount * rate).toFixed(2);
           })
         );
-        setCompareAmounts(res);
+        if (alive) setCompareAmounts(res);
       } catch (err) {
         console.log(err.message);
+      } finally {
+        if (alive) setIsUpdatingCompare(false);
       }
+    }, 250);
+    return () => {
+      alive = false;
+      clearTimeout(handle);
     };
-    updateCompare();
   }, [compareTime, baseIndex, currencies[baseIndex].code, currencies[baseIndex].amount, codesList]);
 
   const handleAmountChange = (index, value) => {
@@ -459,9 +520,41 @@ function Currency({ isSuper, onTitleClick }) {
     setCompareTime(d.toISOString().slice(0, 10));
   };
 
+  const handleClearCompare = () => {
+    setCompareTime(null);
+  };
+
+  const shareState = async () => {
+    try {
+      const codes = currencies.map((c) => c.code).join(',');
+      const baseAmount = currencies[baseIndex]?.amount || 1;
+      const params = new URLSearchParams({
+        c: codes,
+        b: String(baseIndex),
+        d: currencyTime,
+      });
+      if (compareTime) params.set('cd', compareTime);
+      if (baseAmount) params.set('a', String(baseAmount));
+      const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+      if (navigator.share) {
+        await navigator.share({ url, title: 'Currency Converter', text: 'Check this conversion setup' });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard');
+      }
+    } catch {
+      alert('Failed to share');
+    }
+  };
+
   return (
     <div className={`currencyDiv${compareTime ? ' compareMode' : ''}`}>
       <h1 onClick={onTitleClick}>{t('title')}</h1>
+      {(isUpdating || isUpdatingCompare) && (
+        <div className="loadingNotice" aria-live="polite">
+          Updating rates...
+        </div>
+      )}
       <div className="currencySelection">
         <div className="dropdown">
           <AnimatePresence>
@@ -477,6 +570,7 @@ function Currency({ isSuper, onTitleClick }) {
                 <Form.Select
                   value={c.code}
                   onChange={(e) => handleCurrencyChange(idx, e.target.value)}
+                  aria-label={`Currency code ${idx + 1}`}
                 >
                   {orderedCodes
                     .filter(
@@ -493,6 +587,7 @@ function Currency({ isSuper, onTitleClick }) {
                 <Form.Control
                   type="text"
                   inputMode="decimal"
+                  enterKeyHint="done"
                   pattern="[0-9]*"
                   value={c.amount}
                   onKeyDown={(e) => {
@@ -539,6 +634,7 @@ function Currency({ isSuper, onTitleClick }) {
                 setShowAdd(false);
               }}
               defaultValue=""
+              aria-label="Add currency"
             >
               <option value="" disabled>
                 {t('select_currency')}
@@ -580,6 +676,26 @@ function Currency({ isSuper, onTitleClick }) {
           onClick={handleFiveYears}
         >
           {formatTwoLines(t('five_years_ago'))}
+        </Button>
+        {compareTime && (
+          <Button
+            as={motion.button}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            variant="secondary"
+            onClick={handleClearCompare}
+          >
+            ✖
+          </Button>
+        )}
+        <Button
+          as={motion.button}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          variant="outline-primary"
+          onClick={shareState}
+        >
+          🔗
         </Button>
         {currencies.length < 8 && (
           <Button

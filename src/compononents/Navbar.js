@@ -13,24 +13,24 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
   return (
     <nav className="topNav" aria-label="main navigation">
       <div className="navActions">
-        {superMode && (
-          <>
-            <motion.button
-              className="themeToggle"
-              aria-label="Toggle theme"
-              onClick={toggleTheme}
-              {...iconProps}
-            >
-              {theme === 'dark' ? '☀️' : '🌙'}
-            </motion.button>
-            <motion.button
-              className="langToggle"
-              aria-label="Toggle language"
-              onClick={toggleLanguage}
-              {...iconProps}
-            >
-              {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
-            </motion.button>
+        <>
+          <motion.button
+            className="themeToggle"
+            aria-label="Toggle theme"
+            onClick={toggleTheme}
+            {...iconProps}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </motion.button>
+          <motion.button
+            className="langToggle"
+            aria-label="Toggle language"
+            onClick={toggleLanguage}
+            {...iconProps}
+          >
+            {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
+          </motion.button>
+          {superMode && (
             <motion.button
               className="cacheClear"
               aria-label="Clear cache"
@@ -47,8 +47,8 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             >
               📈
             </motion.button>
-          </>
-        )}
+          )}
+        </>
       </div>
     </nav>
   );

@@ -119,6 +119,14 @@ body.dark .currencyDiv {
   text-align: center;
 }
 
+.loadingNotice {
+  text-align: center;
+  color: #6c5ce7;
+  font-size: 0.9rem;
+  margin-top: -5px;
+  margin-bottom: 10px;
+}
+
 .currencyDiv button {
   background-color: #6c5ce7;
   color: #ffffff;
@@ -283,6 +291,30 @@ body.dark .react-datepicker__day--outside-month {
   .react-datepicker {
     font-size: 18px;
   }
+  .currencyDiv {
+    margin: 1rem auto 5rem auto;
+  }
+  .currencyRow select {
+    font-size: 1rem;
+  }
+  .currencyRow input[type="text"] {
+    font-size: 1rem;
+  }
+  .presetRow {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom) + 60px);
+    padding: 8px 12px;
+    background: rgba(250, 250, 252, 0.95);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    z-index: 999;
+  }
+  body.dark .presetRow {
+    background: rgba(32, 32, 32, 0.9);
+    border-top-color: rgba(255,255,255,0.1);
+  }
 }
 
 input[type="number"] {
@@ -343,7 +375,7 @@ button {
   left: 0;
   width: 100%;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   padding: 10px;
@@ -370,6 +402,8 @@ button {
 .navActions {
   display: flex;
   gap: 10px;
+  width: 100%;
+  justify-content: flex-end;
 }
 
 #getUsdCurrencyBtn,
