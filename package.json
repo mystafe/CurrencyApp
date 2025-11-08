@@ -1,6 +1,6 @@
 {
   "name": "currencyconverter3",
-  "version": "8.2.1519",
+  "version": "8.3.0",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
