@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
+import logo from "../logo.svg";
 
 function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, checkUsage }) {
   const { i18n } = useTranslation();
@@ -12,6 +13,10 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
 
   return (
     <nav className="topNav" aria-label="main navigation">
+      <div className="brand" aria-label="brand">
+        <img src={logo} alt="CurrencyApp" className="brandLogo" />
+        <span className="brandTitle">CurrencyApp</span>
+      </div>
       <div className="navActions">
         <>
           <motion.button
@@ -31,22 +36,24 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
           </motion.button>
           {superMode && (
-            <motion.button
-              className="cacheClear"
-              aria-label="Clear cache"
-              onClick={clearCache}
-              {...iconProps}
-            >
-              🗑️
-            </motion.button>
-            <motion.button
-              className="usageCheck"
-              aria-label="Check usage"
-              onClick={checkUsage}
-              {...iconProps}
-            >
-              📈
-            </motion.button>
+            <>
+              <motion.button
+                className="cacheClear"
+                aria-label="Clear cache"
+                onClick={clearCache}
+                {...iconProps}
+              >
+                🗑️
+              </motion.button>
+              <motion.button
+                className="usageCheck"
+                aria-label="Check usage"
+                onClick={checkUsage}
+                {...iconProps}
+              >
+                📈
+              </motion.button>
+            </>
           )}
         </>
       </div>

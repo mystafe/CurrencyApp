@@ -257,39 +257,19 @@ function Currency({ isSuper, onTitleClick }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdatingCompare, setIsUpdatingCompare] = useState(false);
 
-  // Restore state from URL or localStorage (persisted UX)
+  // Restore state from localStorage (persisted UX)
   useEffect(() => {
     try {
-      const params = new URLSearchParams(window.location.search);
-      const codesParam = params.get('c');
-      const baseParam = params.get('b');
-      const dateParam = params.get('d');
-      const compareParam = params.get('cd');
-      const amountParam = params.get('a');
-      if (codesParam) {
-        const codes = codesParam.split(',').map((s) => s.trim()).filter(Boolean);
-        if (codes.length) {
-          setCurrencies(codes.map((code, idx) => ({
-            code,
-            amount: idx === 0 ? (amountParam ? parseFloat(amountParam) || 1 : 1) : 0,
-            rate: idx === 0 ? 1 : 0,
-          })));
+      const saved = localStorage.getItem('converter.state.v1');
+      if (saved) {
+        const st = JSON.parse(saved);
+        if (Array.isArray(st.currencies) && st.currencies.length) {
+          setCurrencies(st.currencies);
         }
-      } else {
-        const saved = localStorage.getItem('converter.state.v1');
-        if (saved) {
-          const st = JSON.parse(saved);
-          if (Array.isArray(st.currencies) && st.currencies.length) {
-            setCurrencies(st.currencies);
-          }
-          if (typeof st.baseIndex === 'number') setBaseIndex(st.baseIndex);
-          if (typeof st.currencyTime === 'string') setCurrencyTime(st.currencyTime);
-          if (st.compareTime) setCompareTime(st.compareTime);
-        }
+        if (typeof st.baseIndex === 'number') setBaseIndex(st.baseIndex);
+        if (typeof st.currencyTime === 'string') setCurrencyTime(st.currencyTime);
+        if (st.compareTime) setCompareTime(st.compareTime);
       }
-      if (baseParam) setBaseIndex(parseInt(baseParam, 10) || 0);
-      if (dateParam) setCurrencyTime(dateParam);
-      if (compareParam) setCompareTime(compareParam);
     } catch {}
   }, []);
 
@@ -524,28 +504,7 @@ function Currency({ isSuper, onTitleClick }) {
     setCompareTime(null);
   };
 
-  const shareState = async () => {
-    try {
-      const codes = currencies.map((c) => c.code).join(',');
-      const baseAmount = currencies[baseIndex]?.amount || 1;
-      const params = new URLSearchParams({
-        c: codes,
-        b: String(baseIndex),
-        d: currencyTime,
-      });
-      if (compareTime) params.set('cd', compareTime);
-      if (baseAmount) params.set('a', String(baseAmount));
-      const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-      if (navigator.share) {
-        await navigator.share({ url, title: 'Currency Converter', text: 'Check this conversion setup' });
-      } else {
-        await navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard');
-      }
-    } catch {
-      alert('Failed to share');
-    }
-  };
+  // shareState removed
 
   return (
     <div className={`currencyDiv${compareTime ? ' compareMode' : ''}`}>
@@ -688,15 +647,7 @@ function Currency({ isSuper, onTitleClick }) {
             ✖
           </Button>
         )}
-        <Button
-          as={motion.button}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          variant="outline-primary"
-          onClick={shareState}
-        >
-          🔗
-        </Button>
+        
         {currencies.length < 8 && (
           <Button
             as={motion.button}
