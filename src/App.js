@@ -14,7 +14,7 @@ function App() {
     return saved || (prefersDark ? "dark" : "light");
   });
   const [superMode, setSuperMode] = useState(false);
-  const [titleClicks, setTitleClicks] = useState(0);
+  const [, setTitleClicks] = useState(0);
 
   const toggleLanguage = () => {
     const newLng = i18n.language === 'tr' ? 'en' : 'tr';
