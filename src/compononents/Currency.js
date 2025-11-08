@@ -133,12 +133,19 @@ const frankfurterCodes = [
 
 const METAL_CODES = ["XAU", "XAG", "XPT", "XPD"];
 
-const OER_APP_ID = process.env.REACT_APP_APP_ID;
+const getOerAppId = () => {
+  const fromLocal = localStorage.getItem('oer.appId');
+  return (fromLocal && fromLocal.trim()) || process.env.REACT_APP_APP_ID;
+};
 
 const TROY_OUNCE_TO_GRAM = 31.1034768;
 // Convert metal prices from USD per troy ounce to USD per gram
 
 const fetchOpenRates = async (date) => {
+  const OER_APP_ID = getOerAppId();
+  if (!OER_APP_ID) {
+    throw new Error("Missing OpenExchangeRates App ID");
+  }
   const key = `oer_${date}`;
   const cached = localStorage.getItem(key);
   if (cached) {
@@ -227,7 +234,7 @@ const fetchRate = async (from, to, date) => {
   return rate;
 };
 
-function Currency({ isSuper, onTitleClick }) {
+function Currency({ isSuper, onTitleClick, notify }) {
   const { t } = useTranslation();
 
   const getSymbol = (code) => {
@@ -297,6 +304,39 @@ function Currency({ isSuper, onTitleClick }) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Keyboard shortcuts: arrows for day; Alt+arrows for month; Shift+Alt+arrows for year; 't' => today; 'x' => clear compare
+  useEffect(() => {
+    const onKey = (e) => {
+      const key = e.key.toLowerCase();
+      const useCompare = !!compareTime && e.ctrlKey;
+      try {
+        if (key === 't') {
+          e.preventDefault();
+          handleToday();
+          return;
+        }
+        if (key === 'x' && compareTime) {
+          e.preventDefault();
+          handleClearCompare();
+          return;
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const dir = e.key === 'ArrowLeft' ? -1 : 1;
+          if (e.altKey && e.shiftKey) {
+            useCompare ? changeCompareYear(dir) : changeYear(dir);
+          } else if (e.altKey) {
+            useCompare ? changeCompareMonth(dir) : changeMonth(dir);
+          } else {
+            useCompare ? changeCompareDate(dir) : changeDate(dir);
+          }
+        }
+      } catch {}
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [compareTime, currencyTime, baseIndex]);
 
   const nextDayDisabled = currencyTime >= today;
   const nextMonthDisabled = currencyTime >= today;
@@ -381,18 +421,20 @@ function Currency({ isSuper, onTitleClick }) {
       setIsUpdating(true);
       try {
         const base = currencies[baseIndex];
+        const baseAmountNum = parseFloat(base.amount) || 0;
         const updated = await Promise.all(
           currencies.map(async (c, idx) => {
             if (idx === baseIndex)
-              return { ...c, rate: 1, amount: base.amount };
+              return { ...c, rate: 1, amount: baseAmountNum };
             const rate = await fetchRate(base.code, c.code, currencyTime);
-            return { ...c, rate, amount: (base.amount * rate).toFixed(2) };
+            const nextAmount = (baseAmountNum * rate);
+            return { ...c, rate, amount: nextAmount.toFixed(2) };
           })
         );
         if (!alive) return;
         setCurrencies(updated);
       } catch (err) {
-        console.log(err.message);
+        if (notify) notify('Failed to update latest rates', 'error');
       } finally {
         if (alive) setIsUpdating(false);
       }
@@ -422,7 +464,7 @@ function Currency({ isSuper, onTitleClick }) {
         );
         if (alive) setCompareAmounts(res);
       } catch (err) {
-        console.log(err.message);
+        if (notify) notify('Failed to update comparison', 'error');
       } finally {
         if (alive) setIsUpdatingCompare(false);
       }
@@ -436,6 +478,8 @@ function Currency({ isSuper, onTitleClick }) {
   const handleAmountChange = (index, value) => {
     const parseValue = (val) => {
       if (typeof val === "string") {
+        const normalized = val.replace(/\s+/g, '').replace(',', '.');
+        if (normalized !== val) val = normalized;
         const upper = val.trim().toUpperCase();
         if (upper === "M") return 1000000;
         if (upper === "K") return 1000;
@@ -455,11 +499,12 @@ function Currency({ isSuper, onTitleClick }) {
     if (amount < 0) amount = 0;
     setCurrencies((prev) => {
       const baseAmountOld = prev[index].rate ? amount / prev[index].rate : amount;
-      return prev.map((c, idx) =>
-        idx === index
-          ? { ...c, amount }
-          : { ...c, amount: (baseAmountOld * c.rate).toFixed(2), rate: c.rate }
-      );
+      return prev.map((c, idx) => {
+        if (idx === index) return { ...c, amount };
+        if (!c.rate) return c;
+        const next = (baseAmountOld * c.rate);
+        return { ...c, amount: isFinite(next) ? next.toFixed(2) : c.amount, rate: c.rate };
+      });
     });
     setBaseIndex(index);
   };
@@ -508,6 +553,7 @@ function Currency({ isSuper, onTitleClick }) {
 
   return (
     <div className={`currencyDiv${compareTime ? ' compareMode' : ''}`}>
+      {(isUpdating || isUpdatingCompare) && <div className="progressBar" />}
       <h1 onClick={onTitleClick}>{t('title')}</h1>
       {(isUpdating || isUpdatingCompare) && (
         <div className="loadingNotice" aria-live="polite">
@@ -617,7 +663,7 @@ function Currency({ isSuper, onTitleClick }) {
             whileTap={{ scale: 0.9 }}
             onClick={handleToday}
           >
-            {t('today')}
+            📅 {t('today')}
           </Button>
         )}
         <Button
@@ -626,7 +672,7 @@ function Currency({ isSuper, onTitleClick }) {
           whileTap={{ scale: 0.9 }}
           onClick={handleLastYear}
         >
-          {formatTwoLines(t('last_year'))}
+          ⏪ {formatTwoLines(t('last_year'))}
         </Button>
         <Button
           as={motion.button}
@@ -634,7 +680,7 @@ function Currency({ isSuper, onTitleClick }) {
           whileTap={{ scale: 0.9 }}
           onClick={handleFiveYears}
         >
-          {formatTwoLines(t('five_years_ago'))}
+          ⏪ {formatTwoLines(t('five_years_ago'))}
         </Button>
         {compareTime && (
           <Button

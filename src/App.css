@@ -52,6 +52,31 @@ body.accent-purple { --accent: #6c5ce7; --accent-ring: rgba(108, 92, 231, 0.35);
 body.accent-teal { --accent: #0fae96; --accent-ring: rgba(15, 174, 150, 0.35); }
 body.accent-amber { --accent: #f59e0b; --accent-ring: rgba(245, 158, 11, 0.35); }
 
+/* Style themes */
+body.style-default {}
+body.style-metal {
+  background: linear-gradient(180deg, #eceff1 0%, #cfd8dc 100%);
+}
+body.dark.style-metal {
+  background: linear-gradient(180deg, #2b2f33 0%, #1f2327 100%);
+}
+body.style-glass {
+  background: radial-gradient(1200px 800px at 20% -10%, #ffffff, #eef7ff 50%, #e6fbff 100%);
+}
+body.dark.style-glass {
+  background: radial-gradient(1200px 800px at 20% -10%, #1c1c1c, #202b38 50%, #18222a 100%);
+}
+body.style-wood {
+  background:
+    repeating-linear-gradient(90deg, #6e4b2e 0, #6e4b2e 6px, #744f31 6px, #744f31 12px, #7a5435 12px, #7a5435 18px),
+    linear-gradient(180deg, #8b5a2b 0%, #804a1c 100%);
+}
+body.dark.style-wood {
+  background:
+    repeating-linear-gradient(90deg, #3d2a18 0, #3d2a18 6px, #432e1b 6px, #432e1b 12px, #4a331f 12px, #4a331f 18px),
+    linear-gradient(180deg, #3b2412 0%, #2a1609 100%);
+}
+
 body {
   background: radial-gradient(1200px 800px at 20% -10%, #ffffff, #f3f3f3 50%, #ece9ff 100%);
   font-family: 'Inter', sans-serif;
@@ -125,7 +150,7 @@ body.dark .currencyDiv {
   color: inherit;
   font-size: 22px;
   text-transform: uppercase;
-  border: 2px solid rgba(108, 92, 231, 0.6);
+  border: 2px solid var(--accent);
   display: block;
   width: 100%;
   padding: 4px 8px;
@@ -175,7 +200,7 @@ body.dark .currencyDiv {
 }
 
 input[type="date"] {
-  border: 1px solid #6c5ce7;
+  border: 1px solid var(--accent);
   border-radius: 4px;
   width: 100%;
   padding: 8px 12px;
@@ -184,6 +209,24 @@ input[type="date"] {
   font-size: 16px;
   color: #444;
   background-color: #f8f8f8;
+}
+
+.progressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: progressFlow 1s linear infinite;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+@keyframes progressFlow {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .react-datepicker-wrapper {
@@ -366,15 +409,24 @@ select {
   font-size: 16px;
   color: inherit;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  background-size: 12px 8px;
 }
 
 
 .dropdown {
   position: relative;
+}
+
+.dropdown::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
 }
 
 .currencyRow {
@@ -444,6 +496,84 @@ body.dark.scrolled .topNav {
   transform: scale(1.1);
 }
 
+.moreToggle {
+  border-radius: 999px;
+  background: transparent;
+}
+.moreToggle:hover {
+  background: rgba(0,0,0,0.05);
+}
+body.dark .moreToggle:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.navSheet {
+  position: fixed;
+  top: calc(50px + env(safe-area-inset-top));
+  right: 10px;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(250, 250, 252, 0.95);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  z-index: 1100;
+  animation: sheetIn 140ms ease-out;
+}
+body.dark .navSheet {
+  background: rgba(26, 26, 26, 0.9);
+  border-color: rgba(255,255,255,0.12);
+}
+
+@keyframes sheetIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menuColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.menuGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.menuTitle {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.styleRow, .menuRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.styleChip {
+  border: 1px solid rgba(0,0,0,0.1);
+  background: transparent;
+  color: inherit;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+body.dark .styleChip { border-color: rgba(255,255,255,0.2); }
+.styleChip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-ring);
+}
+.menuItem {
+  border-radius: 8px;
+  background: rgba(0,0,0,0.03);
+}
+body.dark .menuItem {
+  background: rgba(255,255,255,0.06);
+}
+
 .currencyDiv button:focus-visible,
 .dropdown select:focus-visible,
 .currencyRow input[type="text"]:focus-visible {
@@ -473,6 +603,7 @@ body.dark.scrolled .topNav {
   gap: 10px;
   width: 100%;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .accentSwatches {
@@ -487,6 +618,16 @@ body.dark.scrolled .topNav {
   border-radius: 999px;
   border: 2px solid rgba(255,255,255,0.6);
   cursor: pointer;
+}
+
+.navDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(0,0,0,0.08);
+  margin: 0 4px;
+}
+body.dark .navDivider {
+  background: rgba(255,255,255,0.12);
 }
 
 .toastContainer {
@@ -679,7 +820,11 @@ body.dark .footer {
 
 .dateNavigator button {
   width: auto;
-  padding: 5px 10px;
+  padding: 6px 12px;
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
 }
 
 .dateNavigator button:disabled {
