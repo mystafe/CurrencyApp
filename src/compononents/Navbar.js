@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, checkUsage, setAccent, accent, setAppId, styleTheme, setStyleTheme }) {
   const { i18n } = useTranslation();
@@ -15,6 +15,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
   const [keyPresent, setKeyPresent] = useState(Boolean((localStorage.getItem('oer.appId') || '').trim() || process.env.REACT_APP_APP_ID));
   const menuBtnRef = useRef(null);
   const sheetRef = useRef(null);
+  const menuId = 'topnav-menu';
   useEffect(() => {
     const onResize = () => setIsCompact(window.innerWidth <= 576);
     window.addEventListener('resize', onResize);
@@ -39,6 +40,42 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
     };
   }, [showMenu]);
 
+  const focusNext = (dir) => {
+    if (!sheetRef.current) return;
+    const focusables = Array.from(sheetRef.current.querySelectorAll('button, [role="menuitemradio"]'));
+    if (!focusables.length) return;
+    const idx = focusables.indexOf(document.activeElement);
+    const nextIdx = idx < 0 ? 0 : (idx + dir + focusables.length) % focusables.length;
+    focusables[nextIdx].focus();
+  };
+
+  const onMenuKeyDown = (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusNext(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusNext(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      focusNext(9999); // wrap to first after modulo
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      focusNext(-9999); // wrap to last after modulo
+    }
+  };
+
+  useEffect(() => {
+    const onKbd = (e) => {
+      if (e.altKey && (e.key.toLowerCase() === 'm')) {
+        e.preventDefault();
+        setShowMenu((s) => !s);
+      }
+    };
+    window.addEventListener('keydown', onKbd);
+    return () => window.removeEventListener('keydown', onKbd);
+  }, []);
+
   const actions = (
     <div className="menuColumn">
       <div className="menuGroup">
@@ -48,10 +85,13 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             <motion.button
               key={s}
               className={`styleChip${styleTheme === s ? ' active' : ''}`}
+              role="menuitemradio"
+              aria-checked={styleTheme === s ? 'true' : 'false'}
+              title={s}
               onClick={() => setStyleTheme && setStyleTheme(s)}
               {...iconProps}
             >
-              {s}
+              {s === 'default' ? '✨' : s === 'metal' ? '⚙️' : s === 'glass' ? '🪟' : '🪵'}
             </motion.button>
           ))}
         </div>
@@ -70,6 +110,8 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
               title={`Accent: ${label}`}
               className="accentSwatch"
               style={{ backgroundColor: color, outline: accent === key ? '2px solid #fff' : 'none' }}
+              role="menuitemradio"
+              aria-checked={accent === key ? 'true' : 'false'}
               onClick={() => setAccent && setAccent(key)}
               {...iconProps}
             />
@@ -91,7 +133,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             }}
             {...iconProps}
           >
-            {keyPresent ? '🔒' : '🔑'}
+            {keyPresent ? '🔒 API' : '🔑 API'}
           </motion.button>
           <motion.button
             className="themeToggle menuItem"
@@ -100,7 +142,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             onClick={toggleTheme}
             {...iconProps}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
           </motion.button>
           <motion.button
             className="langToggle menuItem"
@@ -109,7 +151,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             onClick={toggleLanguage}
             {...iconProps}
           >
-            {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
+            {i18n.language === 'tr' ? '🇬🇧 EN' : '🇹🇷 TR'}
           </motion.button>
           {superMode && (
             <>
@@ -119,7 +161,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
                 onClick={clearCache}
                 {...iconProps}
               >
-                🗑️
+                🗑️ Cache
               </motion.button>
               <motion.button
                 className="usageCheck menuItem"
@@ -127,10 +169,16 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
                 onClick={checkUsage}
                 {...iconProps}
               >
-                📈
+                📈 Usage
               </motion.button>
             </>
           )}
+        </div>
+      </div>
+      <div className="menuGroup">
+        <span className="menuTitle">Shortcuts</span>
+        <div className="menuHint">
+          t: Today · x: Clear Compare · Alt+Arrows: Month · Shift+Alt+Arrows: Year · Ctrl+Arrows: Compare
         </div>
       </div>
     </div>
@@ -139,6 +187,26 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
   return (
     <nav className="topNav" aria-label="main navigation">
       <div className="navActions">
+        <div className="quickActions" aria-label="quick actions">
+          <motion.button
+            className="themeToggle"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+            onClick={toggleTheme}
+            {...iconProps}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </motion.button>
+          <motion.button
+            className="langToggle"
+            aria-label="Toggle language"
+            title="Toggle language"
+            onClick={toggleLanguage}
+            {...iconProps}
+          >
+            {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
+          </motion.button>
+        </div>
         {isCompact ? (
           <>
             <motion.button
@@ -146,13 +214,31 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
               aria-label="More"
               title="More"
               aria-expanded={showMenu ? 'true' : 'false'}
+              aria-haspopup="menu"
+              aria-controls={menuId}
               ref={menuBtnRef}
               onClick={() => setShowMenu((s) => !s)}
               {...iconProps}
             >
               ⋯
             </motion.button>
-            {showMenu && <div className="navSheet" ref={sheetRef}>{actions}</div>}
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div
+                  className="navSheet"
+                  id={menuId}
+                  ref={sheetRef}
+                  role="menu"
+                  onKeyDown={onMenuKeyDown}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.14, ease: 'easeOut' }}
+                >
+                  {actions}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         ) : (
           actions

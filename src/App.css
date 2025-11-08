@@ -229,6 +229,19 @@ input[type="date"] {
   100% { background-position: -200% 0; }
 }
 
+.offlineBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(160, 32, 49, 0.92);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
 .react-datepicker-wrapper {
   width: 100%;
 }
@@ -468,6 +481,16 @@ button {
   z-index: 1000;
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
+.topNav::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.4;
+}
 
 body.scrolled .topNav {
   background: rgba(250, 250, 252, 0.85);
@@ -513,8 +536,8 @@ body.dark .moreToggle:hover {
   right: 10px;
   display: flex;
   align-items: stretch;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 6px 8px;
   background: rgba(250, 250, 252, 0.95);
   backdrop-filter: saturate(180%) blur(10px);
   -webkit-backdrop-filter: saturate(180%) blur(10px);
@@ -537,29 +560,28 @@ body.dark .navSheet {
 .menuColumn {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 .menuGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 .menuTitle {
-  font-size: 12px;
-  opacity: 0.7;
+  display: none;
 }
 .styleRow, .menuRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .styleChip {
   border: 1px solid rgba(0,0,0,0.1);
   background: transparent;
   color: inherit;
   border-radius: 12px;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 2px 6px;
+  font-size: 14px;
 }
 body.dark .styleChip { border-color: rgba(255,255,255,0.2); }
 .styleChip.active {
@@ -572,6 +594,11 @@ body.dark .styleChip { border-color: rgba(255,255,255,0.2); }
 }
 body.dark .menuItem {
   background: rgba(255,255,255,0.06);
+}
+.menuHint {
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0.85;
 }
 
 .currencyDiv button:focus-visible,
@@ -606,6 +633,13 @@ body.dark .menuItem {
   flex-wrap: wrap;
 }
 
+.quickActions {
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .accentSwatches {
   display: flex;
   gap: 6px;
@@ -613,10 +647,10 @@ body.dark .menuItem {
   margin-right: 6px;
 }
 .accentSwatch {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
-  border: 2px solid rgba(255,255,255,0.6);
+  border: 1.5px solid rgba(255,255,255,0.6);
   cursor: pointer;
 }
 
