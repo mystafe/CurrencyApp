@@ -1096,6 +1096,9 @@ body.dark .dateNavigator button:hover:not(:disabled) {
 }
 
 @media (max-width: 576px) {
+  body {
+    font-size: 15px;
+  }
   :root {
     --left-col: 34%;
     --right-col: 62%;
@@ -1121,10 +1124,10 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     white-space: nowrap;
   }
   .presetLeft {
-    flex: 0 0 44px;
+    flex: 0 0 40px;
   }
   .compareMode .presetLeft {
-    flex-basis: 44px;
+    flex-basis: 40px;
   }
   .presetRow .presetRange {
     grid-template-columns: repeat(3, 1fr);
@@ -1192,6 +1195,6 @@ body.dark .currencyDiv button {
 
 @media (max-width: 576px) {
   .container {
-    padding-top: 120px;
+    padding-top: 110px;
   }
 }
