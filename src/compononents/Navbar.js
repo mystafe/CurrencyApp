@@ -10,13 +10,11 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
     whileTap: { scale: 0.9 }
   };
 
-  const [isCompact, setIsCompact] = useState(window.innerWidth <= 576); // reserved for future layout changes
   const [showMenu, setShowMenu] = useState(false);
   const [keyPresent, setKeyPresent] = useState(Boolean((localStorage.getItem('oer.appId') || '').trim() || process.env.REACT_APP_APP_ID));
   const menuBtnRef = useRef(null);
   const sheetRef = useRef(null);
   const menuId = 'topnav-menu';
-  // No longer switching layouts; keep for future if needed
   useEffect(() => {
     const onClick = (e) => {
       if (!showMenu) return;
