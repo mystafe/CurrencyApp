@@ -1120,6 +1120,17 @@ function Currency({ isSuper, onTitleClick, notify }) {
                   ]);
                   if (addInputRef.current) addInputRef.current.value = '';
                   setShowAdd(false);
+                  // Bring the newly added row into view and focus its input on mobile
+                  try {
+                    requestAnimationFrame(() => {
+                      const inputs = document.querySelectorAll('.currencyRow input[type="text"]');
+                      const last = inputs[inputs.length - 1];
+                      if (last) {
+                        last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        last.focus();
+                      }
+                    });
+                  } catch {}
                 }}
               >
                 ➕

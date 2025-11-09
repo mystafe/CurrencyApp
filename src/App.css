@@ -1120,6 +1120,12 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     overflow-x: auto;
     white-space: nowrap;
   }
+  .presetLeft {
+    flex: 0 0 44px;
+  }
+  .compareMode .presetLeft {
+    flex-basis: 44px;
+  }
   .presetRow .presetRange {
     grid-template-columns: repeat(3, 1fr);
   }
