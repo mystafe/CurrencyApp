@@ -1096,38 +1096,38 @@ body.dark .dateNavigator button:hover:not(:disabled) {
 }
 
 @media (max-width: 576px) {
-  body {
-    font-size: 15px;
-  }
+  body { font-size: 14px; }
   :root {
-    --left-col: 34%;
-    --right-col: 62%;
+    --left-col: 33%;
+    --right-col: 63%;
     --clear-col: 32px;
-    --row-gap: 10px;
+    --row-gap: 8px;
   }
   .topNav {
-    padding: 8px;
-    padding-top: calc(8px + env(safe-area-inset-top));
+    padding: 6px;
+    padding-top: calc(6px + env(safe-area-inset-top));
   }
   .topNav button {
-    font-size: 1.25rem;
-    min-width: 40px;
-    min-height: 40px;
+    font-size: 1.1rem;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 6px;
   }
   .dateNavigator button {
     font-size: 0.8rem;
     padding: 2px 8px;
   }
   .presetRow {
-    gap: 4px;
+    gap: 6px;
     overflow-x: auto;
     white-space: nowrap;
+    margin-top: 12px;
   }
   .presetLeft {
-    flex: 0 0 40px;
+    flex: 0 0 38px;
   }
   .compareMode .presetLeft {
-    flex-basis: 40px;
+    flex-basis: 38px;
   }
   .presetRow .presetRange {
     grid-template-columns: repeat(3, 1fr);
@@ -1140,8 +1140,8 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     flex: 1;
   }
   .currencyDiv .plusIcon {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     font-size: 0.95rem;
   }
   .presetRow .plusIcon {
@@ -1163,6 +1163,22 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     padding: 4px 8px;
     white-space: nowrap;
     text-align: center;
+  }
+  .currencyRow {
+    margin-bottom: 8px;
+  }
+  .currencyDiv {
+    margin-bottom: 3.75rem; /* more space above footer on mobile */
+  }
+  .currencyRow select {
+    font-size: 12.5px;
+    padding: 10px 24px 10px 8px;
+    min-height: 36px;
+  }
+  .currencyRow input[type="text"] {
+    padding: 10px 8px;
+    min-height: 36px;
+    font-size: 0.95rem;
   }
 }
 
@@ -1195,6 +1211,7 @@ body.dark .currencyDiv button {
 
 @media (max-width: 576px) {
   .container {
-    padding-top: 110px;
+    padding-top: 98px;
+    padding-bottom: 76px;
   }
 }
