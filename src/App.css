@@ -59,29 +59,39 @@ body.accent-amber { --accent: #f59e0b; --accent-ring: rgba(245, 158, 11, 0.35); 
 
 /* Style themes */
 body.style-metal {
-  background: linear-gradient(180deg, #eceff1 0%, #cfd8dc 100%);
+  background:
+    radial-gradient(900px 500px at 70% -10%, var(--accent-ring), transparent 60%),
+    linear-gradient(180deg, #eceff1 0%, #cfd8dc 100%);
   --navbar-bg: rgba(223, 230, 234, 0.55);
 }
 body.dark.style-metal {
-  background: linear-gradient(180deg, #2b2f33 0%, #1f2327 100%);
+  background:
+    radial-gradient(900px 500px at 70% -10%, var(--accent-ring), transparent 60%),
+    linear-gradient(180deg, #2b2f33 0%, #1f2327 100%);
   --navbar-bg: rgba(28, 32, 36, 0.6);
 }
 body.style-glass {
-  background: radial-gradient(1200px 800px at 20% -10%, #ffffff, #eef7ff 50%, #e6fbff 100%);
+  background:
+    radial-gradient(900px 500px at 70% -10%, var(--accent-ring), transparent 60%),
+    radial-gradient(1200px 800px at 20% -10%, #ffffff, #eef7ff 50%, #e6fbff 100%);
   --navbar-bg: rgba(245, 250, 255, 0.45);
 }
 body.dark.style-glass {
-  background: radial-gradient(1200px 800px at 20% -10%, #1c1c1c, #202b38 50%, #18222a 100%);
+  background:
+    radial-gradient(900px 500px at 70% -10%, var(--accent-ring), transparent 60%),
+    radial-gradient(1200px 800px at 20% -10%, #1c1c1c, #202b38 50%, #18222a 100%);
   --navbar-bg: rgba(22, 26, 32, 0.6);
 }
 body.style-wood {
   background:
+    radial-gradient(900px 500px at 70% -10%, var(--accent-ring), transparent 60%),
     repeating-linear-gradient(90deg, #6e4b2e 0, #6e4b2e 6px, #744f31 6px, #744f31 12px, #7a5435 12px, #7a5435 18px),
     linear-gradient(180deg, #8b5a2b 0%, #804a1c 100%);
   --navbar-bg: rgba(78, 51, 31, 0.55);
 }
 body.dark.style-wood {
   background:
+    radial-gradient(900px 500px at 70% -10%, var(--accent-ring), transparent 60%),
     repeating-linear-gradient(90deg, #3d2a18 0, #3d2a18 6px, #432e1b 6px, #432e1b 12px, #4a331f 12px, #4a331f 18px),
     linear-gradient(180deg, #3b2412 0%, #2a1609 100%);
   --navbar-bg: rgba(36, 24, 14, 0.6);
@@ -132,12 +142,15 @@ body.dark {
 .currencyDiv {
   width: 100%;
   max-width: 600px;
-  margin: 1.5rem auto;
+  margin: 2.5rem auto;
   background-color: var(--surface);
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-radius: 8px;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0,0,0,0.04),
+    0 0 0 4px var(--accent-ring);
   padding: 24px;
   position: relative;
   transition: transform 0.3s ease;
@@ -158,7 +171,7 @@ body.dark .currencyDiv {
 }
 
 .currencyDiv:hover {
-  transform: translateY(-10px);
+  transform: translateY(-8px);
 }
 
 .currencyDiv h1 {
@@ -172,11 +185,11 @@ body.dark .currencyDiv {
   padding: 4px 8px;
   white-space: nowrap;
   text-align: center;
-  background: linear-gradient(90deg, #6c5ce7, #8e79ff);
+  background: linear-gradient(90deg, var(--accent), #8e79ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 2px 6px rgba(108, 92, 231, 0.25));
+  filter: drop-shadow(0 2px 6px var(--accent-ring));
   letter-spacing: 0.5px;
   margin-top: 24px;
 }
@@ -387,13 +400,19 @@ body.dark .react-datepicker__day--outside-month {
     font-size: 18px;
   }
   .currencyDiv {
-    margin: 1rem auto 5rem auto;
+    margin: 1.75rem auto 5rem auto;
+  }
+  .currencyRow {
+    gap: 10px;
+    margin-bottom: 10px;
   }
   .currencyRow select {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    padding: 10px 26px 10px 8px;
   }
   .currencyRow input[type="text"] {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    padding: 10px;
   }
   .presetRow {
     position: fixed;
@@ -474,6 +493,9 @@ select {
   border: 1px solid var(--field-border);
   border-radius: 8px;
   background: var(--field-bg);
+  line-height: 1.2;
+  min-height: 42px;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
 }
 
 .currencyRow select {
@@ -483,6 +505,18 @@ select {
   border: 1px solid var(--field-border);
   border-radius: 8px;
   background: var(--field-bg);
+  line-height: 1.2;
+  min-height: 42px;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.currencyRow input[type="text"]:hover,
+.currencyRow select:hover {
+  border-color: rgba(0,0,0,0.12);
+}
+body.dark .currencyRow input[type="text"]:hover,
+body.dark .currencyRow select:hover {
+  border-color: rgba(255,255,255,0.28);
 }
 
 button {
@@ -516,6 +550,17 @@ button {
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   opacity: 0.18;
+}
+
+/* Overlay shown behind the compact menu */
+.navOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.12);
+  z-index: 1090;
+}
+body.dark .navOverlay {
+  background: rgba(0,0,0,0.32);
 }
 
 body.scrolled .topNav {
@@ -563,19 +608,20 @@ body.dark .moreToggle:hover {
   display: flex;
   align-items: stretch;
   gap: 6px;
-  padding: 6px 8px;
-  background: rgba(250, 250, 252, 0.95);
-  backdrop-filter: saturate(180%) blur(10px);
-  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  padding: 8px 10px;
+  background: rgba(250, 250, 252, 0.94);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
   border: 1px solid rgba(0,0,0,0.08);
   border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.10);
   z-index: 1100;
-  animation: sheetIn 140ms ease-out;
+  animation: sheetIn 160ms cubic-bezier(.22,.61,.36,1);
 }
 body.dark .navSheet {
-  background: rgba(26, 26, 26, 0.9);
+  background: rgba(22, 22, 22, 0.86);
   border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.5);
 }
 
 @keyframes sheetIn {
@@ -617,9 +663,23 @@ body.dark .styleChip { border-color: rgba(255,255,255,0.2); }
 .menuItem {
   border-radius: 8px;
   background: rgba(0,0,0,0.03);
+  padding: 6px 8px;
+  font-size: 13px;
+  transition: transform 160ms cubic-bezier(.22,.61,.36,1), background 140ms ease, box-shadow 140ms ease;
 }
 body.dark .menuItem {
   background: rgba(255,255,255,0.06);
+}
+.menuItem:hover {
+  transform: translateY(-1px);
+  background: rgba(0,0,0,0.05);
+}
+body.dark .menuItem:hover {
+  background: rgba(255,255,255,0.1);
+}
+.menuItem:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 .menuHint {
   font-size: 11px;
@@ -664,6 +724,46 @@ body.dark .menuItem {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.moreToggle[aria-expanded="true"] {
+  background: rgba(0,0,0,0.08);
+}
+body.dark .moreToggle[aria-expanded="true"] {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Improve mobile tap feedback */
+button, a, input, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Quick-add input styling to match selects */
+.addSelect {
+  width: 100%;
+  font-size: 14px;
+  padding: 12px 10px;
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  background: var(--field-bg);
+  color: inherit;
+}
+body.dark .addSelect {
+  background: var(--field-bg);
+}
+.addSelect:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .accentSwatches {
@@ -771,49 +871,97 @@ body.dark .footer {
   text-decoration: none;
 }
 
-.currencyDiv .plusIcon {
-  text-align: center;
-  font-size: 1rem;
-  margin-left: auto;
-  color: #0f9d58 !important;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  width: auto;
-  padding: 5px 20px;
+/* Icon buttons — cleaner, rounded, accent-aware */
+.currencyDiv .plusIcon,
+.currencyDiv .minusIcon,
+.currencyDiv .copyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  color: var(--surface-text) !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
-
-.plusIcon:hover {
-  animation: scaleIcon 0.3s forwards;
+.currencyDiv .plusIcon:hover,
+.currencyDiv .minusIcon:hover,
+.currencyDiv .copyIcon:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px var(--accent-ring);
 }
-
-.currencyDiv .minusIcon {
-  color: #db4437 !important;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  width: 30px;
-  padding: 3px 6px;
-  margin-left: auto;
-}
-
-.minusIcon:hover {
-  animation: scaleIcon 0.3s forwards;
-}
+.currencyDiv .minusIcon { color: #db4437 !important; }
+.currencyDiv .copyIcon { color: #1a73e8 !important; }
+.currencyDiv .plusIcon { color: var(--accent) !important; }
 
 .presetRow {
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  position: relative;
 }
 
 .presetRow button {
-  padding: 5px 20px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  white-space: normal;
-  line-height: 1;
+  white-space: nowrap;
+  line-height: 1.1;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  scroll-snap-align: start;
+}
+
+.presetRow::before,
+.presetRow::after {
+  content: "";
+  position: sticky;
+  top: 0;
+  width: 18px;
+  min-width: 18px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.presetRow::before {
+  left: 0;
+  background: linear-gradient(to right, var(--surface, rgba(250,250,252,0.9)), rgba(255,255,255,0));
+}
+.presetRow::after {
+  right: 0;
+  background: linear-gradient(to left, var(--surface, rgba(250,250,252,0.9)), rgba(255,255,255,0));
+}
+body.dark .presetRow::before {
+  background: linear-gradient(to right, var(--surface, rgba(26,26,26,0.85)), rgba(0,0,0,0));
+}
+body.dark .presetRow::after {
+  background: linear-gradient(to left, var(--surface, rgba(26,26,26,0.85)), rgba(0,0,0,0));
+}
+
+.presetRow button:hover {
+  background: rgba(0,0,0,0.04);
+}
+body.dark .presetRow button:hover {
+  background: rgba(255,255,255,0.06);
+}
+.presetRow button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .presetRow button:not(.plusIcon) {
@@ -840,7 +988,7 @@ body.dark .footer {
 
 .dateRow {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   width: 100%;
 }
@@ -874,22 +1022,34 @@ body.dark .footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  margin-top: 10px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .dateNavigator button {
   width: auto;
-  padding: 6px 12px;
-  background-color: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 999px;
+  padding: 4px 10px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 120ms ease;
 }
 
 .dateNavigator button:disabled {
   opacity: 0.25;
   cursor: not-allowed;
+}
+
+.dateNavigator button:hover:not(:disabled) {
+  background: rgba(0,0,0,0.04);
+}
+body.dark .dateNavigator button:hover:not(:disabled) {
+  background: rgba(255,255,255,0.06);
+}
+.dateNavigator button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .react-datepicker-popper {
@@ -899,10 +1059,12 @@ body.dark .footer {
 @media (max-width: 576px) {
   .dateNavigator button {
     font-size: 0.8rem;
-    padding: 2px 5px;
+    padding: 2px 8px;
   }
   .presetRow {
     gap: 5px;
+    overflow-x: auto;
+    white-space: nowrap;
   }
   .presetRow button {
     font-size: 0.6rem;

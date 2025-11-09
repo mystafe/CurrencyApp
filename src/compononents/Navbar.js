@@ -70,6 +70,16 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
     return () => window.removeEventListener('keydown', onKbd);
   }, []);
 
+  // When menu opens, focus first focusable for better accessibility
+  useEffect(() => {
+    if (showMenu && sheetRef.current) {
+      const focusables = sheetRef.current.querySelectorAll('button, [role="menuitemradio"]');
+      if (focusables && focusables[0]) {
+        focusables[0].focus();
+      }
+    }
+  }, [showMenu]);
+
   const actions = (
     <div className="menuColumn">
       <div className="menuGroup">
@@ -90,6 +100,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
           ))}
         </div>
       </div>
+      <div className="navDivider" />
       <div className="menuGroup">
         <span className="menuTitle">Accent</span>
         <div className="accentSwatches" aria-label="accent colors">
@@ -112,6 +123,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
           ))}
         </div>
       </div>
+      <div className="navDivider" />
       <div className="menuGroup">
         <span className="menuTitle">App</span>
         <div className="menuRow">
@@ -169,6 +181,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
           )}
         </div>
       </div>
+      <div className="navDivider" />
       <div className="menuGroup">
         <span className="menuTitle">Shortcuts</span>
         <div className="menuHint">
@@ -218,10 +231,23 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
           <AnimatePresence>
             {showMenu && (
               <motion.div
+                className="navOverlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.14, ease: 'easeOut' }}
+                onClick={() => setShowMenu(false)}
+              />
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div
                 className="navSheet"
                 id={menuId}
                 ref={sheetRef}
                 role="menu"
+                aria-label="Settings menu"
                 onKeyDown={onMenuKeyDown}
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
