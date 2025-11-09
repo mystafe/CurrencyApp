@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Form, Button } from "react-bootstrap";
 import { useTranslation } from 'react-i18next';
 import DatePicker from "react-datepicker";
@@ -188,44 +188,44 @@ const fetchRate = async (from, to, date) => {
 
   if (useFrankfurter) {
     try {
-      if (from === "USD" && to === "AED") {
-        localStorage.setItem(cacheKey, 3.6725);
-        return 3.6725;
-      }
-      if (from === "AED" && to === "USD") {
-        localStorage.setItem(cacheKey, 1 / 3.6725);
-        return 1 / 3.6725;
-      }
-      if (from === "AED") {
-        const resp = await fetch(
-          `https://api.frankfurter.app/${date}?from=USD&to=${to}`
-        );
-        if (!resp.ok) throw new Error("Request failed!");
-        const data = await resp.json();
-        const usdToSecond = data.rates[to];
-        const rate = (1 / 3.6725) * usdToSecond;
-        localStorage.setItem(cacheKey, rate);
-        return rate;
-      }
-      if (to === "AED") {
-        const resp = await fetch(
-          `https://api.frankfurter.app/${date}?from=${from}&to=USD`
-        );
-        if (!resp.ok) throw new Error("Request failed!");
-        const data = await resp.json();
-        const firstToUsd = data.rates["USD"];
-        const rate = firstToUsd * 3.6725;
-        localStorage.setItem(cacheKey, rate);
-        return rate;
-      }
-      const response = await fetch(
-        `https://api.frankfurter.app/${date}?from=${from}&to=${to}`
+    if (from === "USD" && to === "AED") {
+      localStorage.setItem(cacheKey, 3.6725);
+      return 3.6725;
+    }
+    if (from === "AED" && to === "USD") {
+      localStorage.setItem(cacheKey, 1 / 3.6725);
+      return 1 / 3.6725;
+    }
+    if (from === "AED") {
+      const resp = await fetch(
+        `https://api.frankfurter.app/${date}?from=USD&to=${to}`
       );
-      if (!response.ok) throw new Error("Request failed!");
-      const data = await response.json();
-      const rate = data.rates[to];
+      if (!resp.ok) throw new Error("Request failed!");
+      const data = await resp.json();
+      const usdToSecond = data.rates[to];
+      const rate = (1 / 3.6725) * usdToSecond;
       localStorage.setItem(cacheKey, rate);
       return rate;
+    }
+    if (to === "AED") {
+      const resp = await fetch(
+        `https://api.frankfurter.app/${date}?from=${from}&to=USD`
+      );
+      if (!resp.ok) throw new Error("Request failed!");
+      const data = await resp.json();
+      const firstToUsd = data.rates["USD"];
+      const rate = firstToUsd * 3.6725;
+      localStorage.setItem(cacheKey, rate);
+      return rate;
+    }
+    const response = await fetch(
+      `https://api.frankfurter.app/${date}?from=${from}&to=${to}`
+    );
+    if (!response.ok) throw new Error("Request failed!");
+    const data = await response.json();
+    const rate = data.rates[to];
+    localStorage.setItem(cacheKey, rate);
+    return rate;
     } catch (e) {
       const fromCache = localStorage.getItem(cacheKey);
       const num = parseFloat(fromCache || '');
@@ -248,6 +248,7 @@ const fetchRate = async (from, to, date) => {
 
 function Currency({ isSuper, onTitleClick, notify }) {
   const { t } = useTranslation();
+  const addInputRef = useRef(null);
 
   const getSymbol = (code) => {
     if (code === "XAU") return t("gold");
@@ -347,7 +348,7 @@ function Currency({ isSuper, onTitleClick, notify }) {
   // Keyboard shortcuts: arrows for day; Alt+arrows for month; Shift+Alt+arrows for year; 't' => today; 'x' => clear compare
   useEffect(() => {
     const onKey = (e) => {
-      const key = e.key.toLowerCase();
+      const key = (e && e.key ? e.key : '').toLowerCase();
       const useCompare = !!compareTime && e.ctrlKey;
       try {
         if (key === 't') {
@@ -602,15 +603,15 @@ function Currency({ isSuper, onTitleClick, notify }) {
 
   const handleRemoveCurrency = (index) => {
     const code = currencies[index]?.code;
-    setCurrencies((prev) => {
-      const filtered = prev.filter((_, i) => i !== index);
-      if (baseIndex >= filtered.length) {
-        setBaseIndex(filtered.length - 1);
-      } else if (index < baseIndex) {
-        setBaseIndex((b) => b - 1);
-      }
-      return filtered;
-    });
+      setCurrencies((prev) => {
+        const filtered = prev.filter((_, i) => i !== index);
+        if (baseIndex >= filtered.length) {
+          setBaseIndex(filtered.length - 1);
+        } else if (index < baseIndex) {
+          setBaseIndex((b) => b - 1);
+        }
+        return filtered;
+      });
     if (notify && code) notify(`Removed ${code}`, 'info');
   };
 
@@ -627,6 +628,23 @@ function Currency({ isSuper, onTitleClick, notify }) {
       } else if (index < baseIndex && newIndex >= baseIndex) {
         setBaseIndex((b) => b - 1);
       } else if (index > baseIndex && newIndex <= baseIndex) {
+        setBaseIndex((b) => b + 1);
+      }
+      return next;
+    });
+  };
+
+  const reorderCurrency = (fromIndex, toIndex) => {
+    setCurrencies((prev) => {
+      const next = [...prev];
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= next.length || toIndex >= next.length) return prev;
+      const [item] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, item);
+      if (baseIndex === fromIndex) {
+        setBaseIndex(toIndex);
+      } else if (fromIndex < baseIndex && toIndex >= baseIndex) {
+        setBaseIndex((b) => b - 1);
+      } else if (fromIndex > baseIndex && toIndex <= baseIndex) {
         setBaseIndex((b) => b + 1);
       }
       return next;
@@ -697,263 +715,8 @@ function Currency({ isSuper, onTitleClick, notify }) {
       {lastUpdated && (
         <div className="loadingNotice" aria-live="polite">
           Last updated: {lastUpdated}
-        </div>
+      </div>
       )}
-      <div className="currencySelection">
-        <div className="dropdown">
-          <AnimatePresence>
-            {currencies.map((c, idx) => (
-              <motion.div
-                className="currencyRow"
-                key={idx}
-                layout
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                onTouchStart={(e) => {
-                  const t = e.changedTouches[0];
-                  e.currentTarget.dataset.tsx = String(t.clientX);
-                  e.currentTarget.dataset.tsy = String(t.clientY);
-                }}
-                onTouchEnd={(e) => {
-                  const t = e.changedTouches[0];
-                  const sx = parseFloat(e.currentTarget.dataset.tsx || '0');
-                  const sy = parseFloat(e.currentTarget.dataset.tsy || '0');
-                  const dx = t.clientX - sx;
-                  const dy = t.clientY - sy;
-                  // Detect quick left swipe (avoid vertical scroll)
-                  if (dx < -50 && Math.abs(dy) < 20) {
-                    handleRemoveCurrency(idx);
-                  }
-                }}
-              >
-                <Form.Select
-                  value={c.code}
-                  onChange={(e) => handleCurrencyChange(idx, e.target.value)}
-                  aria-label={`Currency code ${idx + 1}`}
-                >
-                  {orderedCodes
-                    .filter(
-                      (code) =>
-                        code === c.code ||
-                        !currencies.some((c2, j) => j !== idx && c2.code === code)
-                    )
-                    .map((code) => (
-                      <option key={code} value={code}>
-                        {`${getFlag(code)} ${getSymbol(code)} (${code})`}
-                      </option>
-                    ))}
-                </Form.Select>
-                <Form.Control
-                  type="text"
-                  inputMode="decimal"
-                  enterKeyHint="done"
-                  value={c.input ?? ''}
-                  onKeyDown={(e) => {
-                    const key = e.key.toLowerCase();
-                    if (key === "m" || key === "k") {
-                      e.preventDefault();
-                      const zeros = key === "m" ? "000000" : "000";
-                      const cleaned = String(e.target.value).replace(/[^0-9.]/g, "");
-                      handleAmountChange(idx, cleaned + zeros);
-                    }
-                  }}
-                  onFocus={() => {
-                    setBaseIndex(idx);
-                    // remove grouping for editing
-                    setCurrencies((prev) =>
-                      prev.map((row, j) =>
-                        j === idx
-                          ? { ...row, input: String(row.input ?? row.amount ?? '').replace(/,/g, '') }
-                          : row
-                      )
-                    );
-                  }}
-                  onBlur={() => {
-                    // apply grouping formatting after edit
-                    setCurrencies((prev) => {
-                      const next = [...prev];
-                      const cur = next[idx];
-                      const raw = cur?.input ?? '';
-                      const num = parseFloat(String(raw).replace(/,/g, ''));
-                      if (!Number.isNaN(num)) {
-                        const decimals = (String(raw).split('.')[1]?.length) || 0;
-                        const formatted = Number(num).toLocaleString('en-US', {
-                          minimumFractionDigits: Math.min(decimals, 6),
-                          maximumFractionDigits: Math.min(Math.max(decimals, 2), 6),
-                        });
-                        next[idx] = { ...cur, input: formatted };
-                      }
-                      return next;
-                    });
-                  }}
-                  onChange={(e) => handleAmountChange(idx, e.target.value)}
-                />
-                {compareTime && (
-                  <Form.Control
-                    type="text"
-                    readOnly
-                    className="compareInput"
-                    value={
-                      compareAmounts[idx] != null
-                        ? Number(compareAmounts[idx]).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
-                        : ''
-                    }
-                  />
-                )}
-                <Button
-                  variant="secondary"
-                  className="copyIcon"
-                  aria-label={`Copy ${c.code} amount`}
-                  onClick={() => {
-                    const code = c.code;
-                    const display = (c.input ?? '').toString().trim();
-                    const toCopy = `${display} ${code}`.trim();
-                    copyToClipboard(toCopy);
-                  }}
-                  title="Copy amount"
-                >
-                  📋
-                </Button>
-                {currencies.length >= 3 && (
-                  <Button
-                    variant="danger"
-                    className="minusIcon"
-                    aria-label={`Remove ${c.code}`}
-                    onClick={() => handleRemoveCurrency(idx)}
-                  >
-                    ➖
-                  </Button>
-                )}
-                {currencies.length > 1 && (
-                  <>
-                    <Button
-                      variant="secondary"
-                      className="minusIcon"
-                      aria-label="Move up"
-                      onClick={() => moveCurrency(idx, -1)}
-                      disabled={idx === 0}
-                      title="Move up"
-                    >
-                      ▲
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="minusIcon"
-                      aria-label="Move down"
-                      onClick={() => moveCurrency(idx, 1)}
-                      disabled={idx === currencies.length - 1}
-                      title="Move down"
-                    >
-                      ▼
-                    </Button>
-                  </>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {showAdd && (
-            <>
-              <input
-                type="text"
-                list="addCurrencyList"
-                className="addSelect"
-                placeholder={t('select_currency')}
-                aria-label="Add currency code"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const val = e.currentTarget.value.trim().toUpperCase();
-                    if (!val) return;
-                    if (currencies.some((c) => c.code === val)) return;
-                    if (!orderedCodes.includes(val)) return;
-                    setCurrencies((prev) => [
-                      ...prev,
-                      { code: val, amount: 0, rate: 0, input: '0' },
-                    ]);
-                    e.currentTarget.value = '';
-                    setShowAdd(false);
-                  }
-                }}
-                onChange={(e) => {
-                  const val = e.currentTarget.value.trim().toUpperCase();
-                  if (!val) return;
-                  if (!orderedCodes.includes(val)) return;
-                  if (currencies.some((c) => c.code === val)) return;
-                  setCurrencies((prev) => [
-                    ...prev,
-                    { code: val, amount: 0, rate: 0, input: '0' },
-                  ]);
-                  e.currentTarget.value = '';
-                  setShowAdd(false);
-                }}
-              />
-              <datalist id="addCurrencyList">
-                {orderedCodes
-                  .filter((code) => !currencies.some((c) => c.code === code))
-                  .map((code) => (
-                    <option key={code} value={code}>{`${getFlag(code)} ${getSymbol(code)} (${code})`}</option>
-                  ))}
-              </datalist>
-            </>
-          )}
-        </div>
-      </div>
-      <div className="presetRow">
-        {currencyTime !== today && (
-          <Button
-            as={motion.button}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label="Jump to today"
-            onClick={handleToday}
-          >
-            📅 {t('today')}
-          </Button>
-        )}
-        <Button
-          as={motion.button}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label="Go to last year"
-          onClick={handleLastYear}
-        >
-          ⏪ {formatTwoLines(t('last_year'))}
-        </Button>
-        <Button
-          as={motion.button}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label="Go to five years ago"
-          onClick={handleFiveYears}
-        >
-          ⏪ {formatTwoLines(t('five_years_ago'))}
-        </Button>
-        {compareTime && (
-          <Button
-            as={motion.button}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            variant="secondary"
-            aria-label="Clear compare"
-            onClick={handleClearCompare}
-          >
-            ✖
-          </Button>
-        )}
-        
-        {currencies.length < 8 && (
-          <Button
-            as={motion.button}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            variant="success"
-            className="plusIcon"
-            onClick={() => setShowAdd(!showAdd)}
-          >
-            {showAdd ? "➖" : "➕"}
-          </Button>
-        )}
-      </div>
       {isSuper ? (
         <>
           <div className="dateNavigator" role="group" aria-label="Navigate dates">
@@ -1035,7 +798,7 @@ function Currency({ isSuper, onTitleClick, notify }) {
             </Button>
           </div>
           {compareTime && (
-            <div className="dateNavigator" role="group" aria-label="Navigate comparison dates">
+            <div className="dateNavigator" role="group" style={{ marginTop: 8 }} aria-label="Navigate comparison dates">
               <Button
                 as={motion.button}
                 whileHover={{ scale: 1.1 }}
@@ -1100,16 +863,6 @@ function Currency({ isSuper, onTitleClick, notify }) {
               >
                 {">>"}
               </Button>
-              <Button
-                as={motion.button}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => changeCompareYear(1)}
-                disabled={compareNextYearDisabled}
-                aria-label="Next compare year"
-              >
-                {">>>"}
-              </Button>
             </div>
           )}
         </>
@@ -1149,6 +902,271 @@ function Currency({ isSuper, onTitleClick, notify }) {
           )}
         </div>
       )}
+      <div className="currencySelection">
+        <div className="dropdown">
+          <AnimatePresence>
+            {currencies.map((c, idx) => (
+              <motion.div
+                className="currencyRow"
+                key={idx}
+                layout
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                draggable
+                onDragStart={(e) => {
+                  try { e.dataTransfer.setData('text/plain', String(idx)); } catch {}
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                  if (!Number.isNaN(from) && from !== idx) {
+                    reorderCurrency(from, idx);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  const t = e.changedTouches[0];
+                  e.currentTarget.dataset.tsx = String(t.clientX);
+                  e.currentTarget.dataset.tsy = String(t.clientY);
+                }}
+                onTouchEnd={(e) => {
+                  const t = e.changedTouches[0];
+                  const sx = parseFloat(e.currentTarget.dataset.tsx || '0');
+                  const sy = parseFloat(e.currentTarget.dataset.tsy || '0');
+                  const dx = t.clientX - sx;
+                  const dy = t.clientY - sy;
+                  // Detect quick left swipe (avoid vertical scroll)
+                  if (dx < -50 && Math.abs(dy) < 20) {
+                    handleRemoveCurrency(idx);
+                  }
+                }}
+              >
+                {/* drag handle moved to end; entire row is draggable */}
+                <Form.Select
+                  value={c.code}
+                  onChange={(e) => handleCurrencyChange(idx, e.target.value)}
+                  aria-label={`Currency code ${idx + 1}`}
+                >
+                  {orderedCodes
+                    .filter(
+                      (code) =>
+                        code === c.code ||
+                        !currencies.some((c2, j) => j !== idx && c2.code === code)
+                    )
+                    .map((code) => (
+                      <option key={code} value={code}>
+                        {`${getFlag(code)} ${getSymbol(code)} (${code})`}
+                      </option>
+                    ))}
+                </Form.Select>
+                <Form.Control
+                  type="text"
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  value={c.input ?? ''}
+                  onKeyDown={(e) => {
+                    const key = (e && e.key ? e.key : '').toLowerCase();
+                    if (key === "m" || key === "k") {
+                      e.preventDefault();
+                      const zeros = key === "m" ? "000000" : "000";
+                      const cleaned = String(e.target.value).replace(/[^0-9.]/g, "");
+                      handleAmountChange(idx, cleaned + zeros);
+                    }
+                  }}
+                  onFocus={() => {
+                    setBaseIndex(idx);
+                    // remove grouping for editing
+                    setCurrencies((prev) =>
+                      prev.map((row, j) =>
+                        j === idx
+                          ? { ...row, input: String(row.input ?? row.amount ?? '').replace(/,/g, '') }
+                          : row
+                      )
+                    );
+                  }}
+                  onBlur={() => {
+                    // apply grouping formatting after edit
+                    setCurrencies((prev) => {
+                      const next = [...prev];
+                      const cur = next[idx];
+                      const raw = cur?.input ?? '';
+                      const num = parseFloat(String(raw).replace(/,/g, ''));
+                      if (!Number.isNaN(num)) {
+                        const decimals = (String(raw).split('.')[1]?.length) || 0;
+                        const formatted = Number(num).toLocaleString('en-US', {
+                          minimumFractionDigits: Math.min(decimals, 6),
+                          maximumFractionDigits: Math.min(Math.max(decimals, 2), 6),
+                        });
+                        next[idx] = { ...cur, input: formatted };
+                      }
+                      return next;
+                    });
+                  }}
+                  onChange={(e) => handleAmountChange(idx, e.target.value)}
+          />
+          {compareTime && (
+                  <Form.Control
+                    type="text"
+                    readOnly
+                    className="compareInput"
+                    value={
+                      compareAmounts[idx] != null
+                        ? Number(compareAmounts[idx]).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+                        : ''
+                    }
+                  />
+                )}
+                {isSuper && (
+                  <Button
+                    variant="secondary"
+                    className="copyIcon"
+                    aria-label={`Copy ${c.code} amount`}
+                    onClick={() => {
+                      const code = c.code;
+                      const display = (c.input ?? '').toString().trim();
+                      const toCopy = `${display} ${code}`.trim();
+                      copyToClipboard(toCopy);
+                    }}
+                    title="Copy amount"
+                  >
+                    📋
+                  </Button>
+                )}
+                {currencies.length >= 3 && (
+                  <Button
+                    variant="danger"
+                    className="minusIcon"
+                    aria-label={`Remove ${c.code}`}
+                    onClick={() => handleRemoveCurrency(idx)}
+                  >
+                    🗑️
+                  </Button>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          {showAdd && (
+            <>
+              <input
+                type="text"
+                list="addCurrencyList"
+                className="addSelect"
+                placeholder={t('select_currency')}
+                aria-label="Add currency code"
+                ref={addInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const val = e.currentTarget.value.trim().toUpperCase();
+                    if (!val) return;
+                    if (currencies.some((c) => c.code === val)) return;
+                    if (!orderedCodes.includes(val)) return;
+                    setCurrencies((prev) => [
+                      ...prev,
+                      { code: val, amount: 0, rate: 0, input: '0' },
+                    ]);
+                    e.currentTarget.value = '';
+                    setShowAdd(false);
+                  }
+                }}
+              />
+              <Button
+                as={motion.button}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="confirmAdd"
+                aria-label="Add selected currency"
+                onClick={() => {
+                  const val = (addInputRef.current?.value || '').trim().toUpperCase();
+                  if (!val) return;
+                  if (!orderedCodes.includes(val)) return;
+                  if (currencies.some((c) => c.code === val)) return;
+                  setCurrencies((prev) => [
+                    ...prev,
+                    { code: val, amount: 0, rate: 0, input: '0' },
+                  ]);
+                  if (addInputRef.current) addInputRef.current.value = '';
+                  setShowAdd(false);
+                }}
+              >
+                ➕
+              </Button>
+              <datalist id="addCurrencyList">
+                {orderedCodes
+                  .filter((code) => !currencies.some((c) => c.code === code))
+                  .map((code) => (
+                    <option key={code} value={code}>{`${getFlag(code)} ${getSymbol(code)} (${code})`}</option>
+                  ))}
+              </datalist>
+        </>
+        )}
+        </div>
+      </div>
+      <div className="presetRow">
+        <div className="presetLeft">
+          {currencies.length < 8 && (
+            <Button
+              as={motion.button}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              variant="success"
+              className="plusIcon"
+              onClick={() => setShowAdd(!showAdd)}
+              aria-label="Add currency"
+              title="Add currency"
+            >
+              {showAdd ? "➖" : "➕"}
+            </Button>
+          )}
+        </div>
+        <div className="presetRange">
+          {!compareTime && currencyTime !== today && (
+            <Button
+              as={motion.button}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Jump to today"
+              onClick={handleToday}
+            >
+              📅 {t('today')}
+            </Button>
+          )}
+          <Button
+            as={motion.button}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label={t('last_year')}
+            onClick={handleLastYear}
+          >
+            📅 {t('last_year')}
+          </Button>
+          <Button
+            as={motion.button}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label={t('five_years_ago')}
+            onClick={handleFiveYears}
+          >
+            📅 {t('five_years_ago')}
+          </Button>
+        </div>
+        {compareTime && (
+          <Button
+            as={motion.button}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            variant="secondary"
+            aria-label="Clear compare"
+            onClick={handleClearCompare}
+            className="clearBtn"
+          >
+            ✖
+          </Button>
+        )}
+        
+      </div>
     </div>
   );
 }

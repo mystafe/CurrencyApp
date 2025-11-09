@@ -127,20 +127,22 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
       <div className="menuGroup">
         <span className="menuTitle">App</span>
         <div className="menuRow">
-          <motion.button
-            className="apiKey menuItem"
-            aria-label="Set API key"
-            title="Set API key"
-            onClick={() => {
-              if (setAppId) setAppId();
-              setTimeout(() => {
-                setKeyPresent(Boolean((localStorage.getItem('oer.appId') || '').trim() || process.env.REACT_APP_APP_ID));
-              }, 50);
-            }}
-            {...iconProps}
-          >
-            {keyPresent ? '🔒 API' : '🔑 API'}
-          </motion.button>
+          {superMode && (
+            <motion.button
+              className="apiKey menuItem"
+              aria-label="Set API key"
+              title="Set API key"
+              onClick={() => {
+                if (setAppId) setAppId();
+                setTimeout(() => {
+                  setKeyPresent(Boolean((localStorage.getItem('oer.appId') || '').trim() || process.env.REACT_APP_APP_ID));
+                }, 50);
+              }}
+              {...iconProps}
+            >
+              {keyPresent ? '🔒 API' : '🔑 API'}
+            </motion.button>
+          )}
           <motion.button
             className="themeToggle menuItem"
             aria-label="Toggle theme"
@@ -157,7 +159,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             onClick={toggleLanguage}
             {...iconProps}
           >
-            {i18n.language === 'tr' ? '🇬🇧 EN' : '🇹🇷 TR'}
+            {i18n.language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
           </motion.button>
           {superMode && (
             <>
@@ -211,7 +213,7 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             onClick={toggleLanguage}
             {...iconProps}
           >
-            {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
+            {i18n.language === 'tr' ? '🇹🇷' : '🇬🇧'}
           </motion.button>
         </div>
         <>

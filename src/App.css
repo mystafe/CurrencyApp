@@ -52,6 +52,13 @@
   --surface-text: #1f2330;
   --field-bg: rgba(255, 255, 255, 0.9);
   --field-border: rgba(108, 92, 231, 0.25);
+  /* layout alignment vars */
+  --left-col: 38%;
+  --right-col: 58%;
+  --left-col-compare: 30%;
+  --right-col-compare: 70%;
+  --clear-col: 36px;
+  --row-gap: 12px;
 }
 body.accent-purple { --accent: #6c5ce7; --accent-ring: rgba(108, 92, 231, 0.35); }
 body.accent-teal { --accent: #0fae96; --accent-ring: rgba(15, 174, 150, 0.35); }
@@ -113,7 +120,7 @@ body {
   flex-direction: column;
   min-height: 100vh;
   padding: 1rem;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding-bottom: 60px;
 }
@@ -141,7 +148,7 @@ body.dark {
 
 .currencyDiv {
   width: 100%;
-  max-width: 600px;
+  max-width: 980px;
   margin: 2.5rem auto;
   background-color: var(--surface);
   backdrop-filter: saturate(180%) blur(12px);
@@ -466,29 +473,40 @@ select {
   position: relative;
 }
 
-.dropdown::after {
-  content: "";
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--accent);
-  border-bottom: 2px solid var(--accent);
-  transform: translateY(-70%) rotate(45deg);
-  pointer-events: none;
-}
+.dropdown::after { display: none; }
 
 .currencyRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--row-gap);
   margin-bottom: 12px;
   width: 100%;
+  cursor: grab;
+}
+.currencyRow:active { cursor: grabbing; }
+.currencyRow:hover {
+  border-radius: 10px;
+  box-shadow: 0 6px 18px var(--accent-ring);
+}
+
+.currencyRow .dragHandle {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  color: var(--surface-text);
+}
+.currencyRow .dragHandle:hover {
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px var(--accent-ring);
 }
 
 .currencyRow input[type="text"] {
-  width: 65%;
+  width: var(--right-col);
   padding: 12px;
   border: 1px solid var(--field-border);
   border-radius: 8px;
@@ -499,7 +517,7 @@ select {
 }
 
 .currencyRow select {
-  width: 30%;
+  width: var(--left-col);
   font-size: 14px;
   padding: 12px 28px 12px 8px;
   border: 1px solid var(--field-border);
@@ -508,6 +526,7 @@ select {
   line-height: 1.2;
   min-height: 42px;
   transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+  margin: 0; /* remove global select side margins to align with + area */
 }
 
 .currencyRow input[type="text"]:hover,
@@ -900,17 +919,44 @@ body.dark .footer {
 .currencyDiv .copyIcon { color: #1a73e8 !important; }
 .currencyDiv .plusIcon { color: var(--accent) !important; }
 
+.presetRow .plusIcon {
+  width: 100%;
+  height: auto;
+  padding: 6px 12px;
+  margin-left: 0;
+  border-radius: 10px;
+}
+
 .presetRow {
   display: flex;
-  flex-wrap: nowrap;
   align-items: stretch;
-  gap: 8px;
+  gap: var(--row-gap); /* match .currencyRow gap for perfect alignment */
   margin-top: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
+  overflow: visible;
   position: relative;
 }
+.presetLeft { flex: 0 0 var(--left-col); }
+.compareMode .presetLeft { flex-basis: var(--left-col-compare); }
+.presetRow .presetRange {
+  flex: 0 0 calc(var(--right-col) - var(--clear-col) - var(--row-gap) - var(--row-gap));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--row-gap);
+}
+.compareMode .presetRow .presetRange { flex-basis: calc(var(--right-col-compare) - var(--clear-col) - var(--row-gap) - var(--row-gap)); }
+.presetRow .clearBtn {
+  /* Slightly reduce to avoid any visual overflow on the right edge */
+  flex: 0 0 calc(var(--clear-col) - 6px);
+  width: calc(var(--clear-col) - 6px);
+  min-width: calc(var(--clear-col) - 6px);
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
 
 .presetRow button {
   padding: 6px 12px;
@@ -925,6 +971,7 @@ body.dark .footer {
   border-radius: 10px;
   transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
   scroll-snap-align: start;
+  width: 100%;
 }
 
 .presetRow::before,
@@ -946,12 +993,8 @@ body.dark .footer {
   right: 0;
   background: linear-gradient(to left, var(--surface, rgba(250,250,252,0.9)), rgba(255,255,255,0));
 }
-body.dark .presetRow::before {
-  background: linear-gradient(to right, var(--surface, rgba(26,26,26,0.85)), rgba(0,0,0,0));
-}
-body.dark .presetRow::after {
-  background: linear-gradient(to left, var(--surface, rgba(26,26,26,0.85)), rgba(0,0,0,0));
-}
+body.dark .presetRow::before { background: none; }
+body.dark .presetRow::after { background: none; }
 
 .presetRow button:hover {
   background: rgba(0,0,0,0.04);
@@ -964,21 +1007,16 @@ body.dark .presetRow button:hover {
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
-.presetRow button:not(.plusIcon) {
-  flex: 1;
-}
+.presetRow .clearBtn { width: 100%; }
 
 .compareInput {
   width: 65%;
 }
 
-.compareMode .currencyRow input[type="text"] {
-  width: 45%;
-}
-
-.compareMode .compareInput {
-  width: 45%;
-}
+.compareMode .currencyRow select { width: 30%; }
+.compareMode .currencyRow input[type="text"] { width: 35%; }
+.compareMode .compareInput { width: 35%; }
+.compareMode .presetRow { gap: var(--row-gap); }
 
 @media (max-width: 576px) {
   .compareMode .currencyRow select {
