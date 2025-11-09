@@ -185,44 +185,54 @@ const fetchRate = async (from, to, date) => {
     !METAL_CODES.includes(to);
 
   if (useFrankfurter) {
-    if (from === "USD" && to === "AED") {
-      localStorage.setItem(cacheKey, 3.6725);
-      return 3.6725;
-    }
-    if (from === "AED" && to === "USD") {
-      localStorage.setItem(cacheKey, 1 / 3.6725);
-      return 1 / 3.6725;
-    }
-    if (from === "AED") {
-      const resp = await fetch(
-        `https://api.frankfurter.app/${date}?from=USD&to=${to}`
+    try {
+      if (from === "USD" && to === "AED") {
+        localStorage.setItem(cacheKey, 3.6725);
+        return 3.6725;
+      }
+      if (from === "AED" && to === "USD") {
+        localStorage.setItem(cacheKey, 1 / 3.6725);
+        return 1 / 3.6725;
+      }
+      if (from === "AED") {
+        const resp = await fetch(
+          `https://api.frankfurter.app/${date}?from=USD&to=${to}`
+        );
+        if (!resp.ok) throw new Error("Request failed!");
+        const data = await resp.json();
+        const usdToSecond = data.rates[to];
+        const rate = (1 / 3.6725) * usdToSecond;
+        localStorage.setItem(cacheKey, rate);
+        return rate;
+      }
+      if (to === "AED") {
+        const resp = await fetch(
+          `https://api.frankfurter.app/${date}?from=${from}&to=USD`
+        );
+        if (!resp.ok) throw new Error("Request failed!");
+        const data = await resp.json();
+        const firstToUsd = data.rates["USD"];
+        const rate = firstToUsd * 3.6725;
+        localStorage.setItem(cacheKey, rate);
+        return rate;
+      }
+      const response = await fetch(
+        `https://api.frankfurter.app/${date}?from=${from}&to=${to}`
       );
-      if (!resp.ok) throw new Error("Request failed!");
-      const data = await resp.json();
-      const usdToSecond = data.rates[to];
-      const rate = (1 / 3.6725) * usdToSecond;
+      if (!response.ok) throw new Error("Request failed!");
+      const data = await response.json();
+      const rate = data.rates[to];
       localStorage.setItem(cacheKey, rate);
       return rate;
+    } catch (e) {
+      const fromCache = localStorage.getItem(cacheKey);
+      const num = parseFloat(fromCache || '');
+      if (!isNaN(num)) {
+        try { localStorage.setItem('rate_fallback_used', '1'); } catch {}
+        return num;
+      }
+      throw e;
     }
-    if (to === "AED") {
-      const resp = await fetch(
-        `https://api.frankfurter.app/${date}?from=${from}&to=USD`
-      );
-      if (!resp.ok) throw new Error("Request failed!");
-      const data = await resp.json();
-      const firstToUsd = data.rates["USD"];
-      const rate = firstToUsd * 3.6725;
-      localStorage.setItem(cacheKey, rate);
-      return rate;
-    }
-    const response = await fetch(
-      `https://api.frankfurter.app/${date}?from=${from}&to=${to}`
-    );
-    if (!response.ok) throw new Error("Request failed!");
-    const data = await response.json();
-    const rate = data.rates[to];
-    localStorage.setItem(cacheKey, rate);
-    return rate;
   }
 
   const rates = await fetchOpenRates(date);
@@ -263,6 +273,9 @@ function Currency({ isSuper, onTitleClick, notify }) {
   const [compareAmounts, setCompareAmounts] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdatingCompare, setIsUpdatingCompare] = useState(false);
+  const [usedCached, setUsedCached] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Restore state from localStorage (persisted UX)
   useEffect(() => {
@@ -303,6 +316,22 @@ function Currency({ isSuper, onTitleClick, notify }) {
     const handleResize = () => setIsMobile(window.innerWidth <= 576);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  useEffect(() => {
+    const onOnline = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rates.lastUpdated');
+      if (saved) setLastUpdated(new Date(saved).toLocaleString());
+    } catch {}
   }, []);
 
   // Keyboard shortcuts: arrows for day; Alt+arrows for month; Shift+Alt+arrows for year; 't' => today; 'x' => clear compare
@@ -419,6 +448,7 @@ function Currency({ isSuper, onTitleClick, notify }) {
     let alive = true;
     const handle = setTimeout(async () => {
       setIsUpdating(true);
+      setUsedCached(false);
       try {
         const base = currencies[baseIndex];
         const baseAmountNum = parseFloat(base.amount) || 0;
@@ -433,6 +463,14 @@ function Currency({ isSuper, onTitleClick, notify }) {
         );
         if (!alive) return;
         setCurrencies(updated);
+        const flag = localStorage.getItem('rate_fallback_used');
+        if (flag) {
+          setUsedCached(true);
+          localStorage.removeItem('rate_fallback_used');
+        }
+        const now = new Date();
+        setLastUpdated(now.toLocaleString());
+        try { localStorage.setItem('rates.lastUpdated', now.toISOString()); } catch {}
       } catch (err) {
         if (notify) notify('Failed to update latest rates', 'error');
       } finally {
@@ -463,6 +501,14 @@ function Currency({ isSuper, onTitleClick, notify }) {
           })
         );
         if (alive) setCompareAmounts(res);
+        const flag = localStorage.getItem('rate_fallback_used');
+        if (flag) {
+          setUsedCached(true);
+          localStorage.removeItem('rate_fallback_used');
+        }
+        const now = new Date();
+        setLastUpdated(now.toLocaleString());
+        try { localStorage.setItem('rates.lastUpdated', now.toISOString()); } catch {}
       } catch (err) {
         if (notify) notify('Failed to update comparison', 'error');
       } finally {
@@ -553,11 +599,26 @@ function Currency({ isSuper, onTitleClick, notify }) {
 
   return (
     <div className={`currencyDiv${compareTime ? ' compareMode' : ''}`}>
+      {isOffline && (
+        <div className="offlineBadge" aria-live="polite" title={`Offline mode${lastUpdated ? ` (last: ${lastUpdated})` : ''}`}>
+          Offline
+        </div>
+      )}
       {(isUpdating || isUpdatingCompare) && <div className="progressBar" />}
       <h1 onClick={onTitleClick}>{t('title')}</h1>
       {(isUpdating || isUpdatingCompare) && (
         <div className="loadingNotice" aria-live="polite">
           Updating rates...
+        </div>
+      )}
+      {usedCached && (
+        <div className="loadingNotice" aria-live="polite">
+          Using cached rates
+        </div>
+      )}
+      {lastUpdated && (
+        <div className="loadingNotice" aria-live="polite">
+          Last updated: {lastUpdated}
         </div>
       )}
       <div className="currencySelection">

@@ -133,6 +133,14 @@ function App() {
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  useEffect(() => {
+    const onboarded = localStorage.getItem('ui.onboarded');
+    if (!onboarded) {
+      showToast('Tip: Open the menu (⋯) to change theme and styles', 'info', 4000);
+      try { localStorage.setItem('ui.onboarded', '1'); } catch {}
+    }
+  }, []);
   useEffect(() => {
     const savedLang = localStorage.getItem('ui.lang');
     if (savedLang && savedLang !== i18n.language) {

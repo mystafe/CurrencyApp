@@ -10,17 +10,13 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
     whileTap: { scale: 0.9 }
   };
 
-  const [isCompact, setIsCompact] = useState(window.innerWidth <= 576);
+  const [isCompact, setIsCompact] = useState(window.innerWidth <= 576); // reserved for future layout changes
   const [showMenu, setShowMenu] = useState(false);
   const [keyPresent, setKeyPresent] = useState(Boolean((localStorage.getItem('oer.appId') || '').trim() || process.env.REACT_APP_APP_ID));
   const menuBtnRef = useRef(null);
   const sheetRef = useRef(null);
   const menuId = 'topnav-menu';
-  useEffect(() => {
-    const onResize = () => setIsCompact(window.innerWidth <= 576);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+  // No longer switching layouts; keep for future if needed
   useEffect(() => {
     const onClick = (e) => {
       if (!showMenu) return;
@@ -207,42 +203,38 @@ function Navbar({ theme, toggleTheme, toggleLanguage, superMode, clearCache, che
             {i18n.language === 'tr' ? '🇬🇧' : '🇹🇷'}
           </motion.button>
         </div>
-        {isCompact ? (
-          <>
-            <motion.button
-              className="moreToggle"
-              aria-label="More"
-              title="More"
-              aria-expanded={showMenu ? 'true' : 'false'}
-              aria-haspopup="menu"
-              aria-controls={menuId}
-              ref={menuBtnRef}
-              onClick={() => setShowMenu((s) => !s)}
-              {...iconProps}
-            >
-              ⋯
-            </motion.button>
-            <AnimatePresence>
-              {showMenu && (
-                <motion.div
-                  className="navSheet"
-                  id={menuId}
-                  ref={sheetRef}
-                  role="menu"
-                  onKeyDown={onMenuKeyDown}
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.14, ease: 'easeOut' }}
-                >
-                  {actions}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </>
-        ) : (
-          actions
-        )}
+        <>
+          <motion.button
+            className="moreToggle"
+            aria-label="More"
+            title="More"
+            aria-expanded={showMenu ? 'true' : 'false'}
+            aria-haspopup="menu"
+            aria-controls={menuId}
+            ref={menuBtnRef}
+            onClick={() => setShowMenu((s) => !s)}
+            {...iconProps}
+          >
+            ⋯
+          </motion.button>
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div
+                className="navSheet"
+                id={menuId}
+                ref={sheetRef}
+                role="menu"
+                onKeyDown={onMenuKeyDown}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.14, ease: 'easeOut' }}
+              >
+                {actions}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
       </div>
     </nav>
   );
