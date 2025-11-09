@@ -1096,6 +1096,21 @@ body.dark .dateNavigator button:hover:not(:disabled) {
 }
 
 @media (max-width: 576px) {
+  :root {
+    --left-col: 34%;
+    --right-col: 62%;
+    --clear-col: 32px;
+    --row-gap: 10px;
+  }
+  .topNav {
+    padding: 8px;
+    padding-top: calc(8px + env(safe-area-inset-top));
+  }
+  .topNav button {
+    font-size: 1.25rem;
+    min-width: 40px;
+    min-height: 40px;
+  }
   .dateNavigator button {
     font-size: 0.8rem;
     padding: 2px 8px;
@@ -1114,6 +1129,22 @@ body.dark .dateNavigator button:hover:not(:disabled) {
   }
   .presetRow button:not(.plusIcon) {
     flex: 1;
+  }
+  .currencyDiv .plusIcon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.95rem;
+  }
+  .presetRow .plusIcon {
+    font-size: 0.9rem;
+    padding: 3px 6px;
+  }
+  .footer {
+    font-size: 11px;
+    padding: 8px 0;
+  }
+  .footer .dataSources {
+    font-size: 9px;
   }
   .currencyDiv h1 {
     font-size: 16px;
