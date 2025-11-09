@@ -1050,28 +1050,59 @@ function Currency({ isSuper, onTitleClick, notify }) {
           </AnimatePresence>
           {showAdd && (
             <>
-              <input
-                type="text"
-                list="addCurrencyList"
-                className="addSelect"
-                placeholder={t('select_currency')}
-                aria-label="Add currency code"
-                ref={addInputRef}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const val = e.currentTarget.value.trim().toUpperCase();
-                    if (!val) return;
-                    if (currencies.some((c) => c.code === val)) return;
-                    if (!orderedCodes.includes(val)) return;
-                    setCurrencies((prev) => [
-                      ...prev,
-                      { code: val, amount: 0, rate: 0, input: '0' },
-                    ]);
-                    e.currentTarget.value = '';
-                    setShowAdd(false);
-                  }
-                }}
-              />
+              {isMobile ? (
+                <Form.Select
+                  className="addSelect"
+                  aria-label="Select currency to add"
+                  ref={addInputRef}
+                  defaultValue=""
+                  onChange={(e) => {
+                    // keep selection but require confirm tap to add (consistent UX)
+                    if (addInputRef.current) addInputRef.current.value = e.target.value;
+                  }}
+                >
+                  <option value="">{t('select_currency')}</option>
+                  {orderedCodes
+                    .filter((code) => !currencies.some((c) => c.code === code))
+                    .map((code) => (
+                      <option key={code} value={code}>
+                        {`${getFlag(code)} ${getSymbol(code)} (${code})`}
+                      </option>
+                    ))}
+                </Form.Select>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    list="addCurrencyList"
+                    className="addSelect"
+                    placeholder={t('select_currency')}
+                    aria-label="Add currency code"
+                    ref={addInputRef}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = e.currentTarget.value.trim().toUpperCase();
+                        if (!val) return;
+                        if (currencies.some((c) => c.code === val)) return;
+                        if (!orderedCodes.includes(val)) return;
+                        setCurrencies((prev) => [
+                          ...prev,
+                          { code: val, amount: 0, rate: 0, input: '0' },
+                        ]);
+                        e.currentTarget.value = '';
+                        setShowAdd(false);
+                      }
+                    }}
+                  />
+                  <datalist id="addCurrencyList">
+                    {orderedCodes
+                      .filter((code) => !currencies.some((c) => c.code === code))
+                      .map((code) => (
+                        <option key={code} value={code}>{`${getFlag(code)} ${getSymbol(code)} (${code})`}</option>
+                      ))}
+                  </datalist>
+                </>
+              )}
               <Button
                 as={motion.button}
                 whileHover={{ scale: 1.05 }}
@@ -1093,15 +1124,8 @@ function Currency({ isSuper, onTitleClick, notify }) {
               >
                 ➕
               </Button>
-              <datalist id="addCurrencyList">
-                {orderedCodes
-                  .filter((code) => !currencies.some((c) => c.code === code))
-                  .map((code) => (
-                    <option key={code} value={code}>{`${getFlag(code)} ${getSymbol(code)} (${code})`}</option>
-                  ))}
-              </datalist>
-        </>
-        )}
+            </>
+          )}
         </div>
       </div>
       <div className="presetRow">

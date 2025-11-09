@@ -922,9 +922,10 @@ body.dark .footer {
 .presetRow .plusIcon {
   width: 100%;
   height: auto;
-  padding: 6px 12px;
+  padding: 4px 8px;
   margin-left: 0;
   border-radius: 10px;
+  font-size: 0.95rem;
 }
 
 .presetRow {
@@ -1100,13 +1101,16 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     padding: 2px 8px;
   }
   .presetRow {
-    gap: 5px;
+    gap: 4px;
     overflow-x: auto;
     white-space: nowrap;
   }
+  .presetRow .presetRange {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .presetRow button {
-    font-size: 0.6rem;
-    padding: 5px 20px;
+    font-size: 0.58rem;
+    padding: 4px 10px;
   }
   .presetRow button:not(.plusIcon) {
     flex: 1;
