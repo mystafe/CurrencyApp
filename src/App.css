@@ -479,7 +479,7 @@ select {
   display: flex;
   align-items: center;
   gap: var(--row-gap);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   width: 100%;
   cursor: grab;
 }
@@ -932,7 +932,7 @@ body.dark .footer {
   display: flex;
   align-items: stretch;
   gap: var(--row-gap); /* match .currencyRow gap for perfect alignment */
-  margin-top: 8px;
+  margin-top: 24px;
   overflow: visible;
   position: relative;
 }
@@ -1121,7 +1121,7 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     gap: 6px;
     overflow-x: auto;
     white-space: nowrap;
-    margin-top: 12px;
+    margin-top: 28px;
   }
   .presetLeft {
     flex: 0 0 38px;
@@ -1165,7 +1165,8 @@ body.dark .dateNavigator button:hover:not(:disabled) {
     text-align: center;
   }
   .currencyRow {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    gap: 6px;
   }
   .currencyDiv {
     margin-bottom: 3.75rem; /* more space above footer on mobile */
